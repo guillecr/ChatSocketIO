@@ -3,30 +3,107 @@
   <head>
     <title>Socket.IO chat</title>
     <style>
-      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body {font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        #contenedor{
+            width: 80vw;
+            padding-top: 50px;
+            margin: 0 auto;
+        }
+        #ventana{
+            margin: 0 auto;
+            width: 800px;
+            height: 600px;
+            border: 1px black solid;
+        }
+        /* Barra superior */
+        #barra{
+            width: 100%;
+            height: 35px;
+            background-color: rgb(42, 42, 42);
+            color: white;
+            border: 1px black solid;
+            padding: 5px;
+            float: left;
+        }
+        #usuariosChat{
+            width: 730px;
+            float: left;
+        }
 
-      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
-      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
-      #input:focus { outline: none; }
-      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+        /* Sala de mensajes */
+        #conteMensajes{
+            float: left;
+            height: 500px;
+            width: 100%;
+            border-bottom: 1px black solid ;
+            background-color: rgb(221, 221, 221);
+        }
 
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages > li { padding: 0.5rem 1rem; }
-      #messages > li:nth-child(odd) { background: #efefef; }
+        /* Barra Inferior */
+        #form{
+            float: left;
+            width: 100%;
+            height: 60px;
+            padding-top: 12px;
+        }
+        #userName{
+            width: 150px;
+            padding-left: 10px;
+            padding-right: 10px;
+            padding-top: 5px;
+            float: left;
+            text-align: center;
+        }
+        #input{
+            width: 540px;
+            float: left;
+        }
+        #send{
+            width: 100px;
+            padding-left: 10px;
+            padding-right: 10px;
+            float: left;
+        }
+        
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Send</button>
-    </form>
+    <div class="container" id="contenedor">
+        <div id="ventana" style="display: none">
+            <div id="barra">
+                <i style="float: left;width: 20px;"  class="bi bi-person-fill"></i>
+                <div id="usuariosChat"></div>
+                <i style="width: 40px;" class="bi bi-lightbulb-fill"></i>
+            </div>
+            <div id="conteMensajes">
+                <ul id="messages"></ul>
+            </div>
+            <form id="form" action="">
+                <label id="userName"><p></p></label>
+                <input id="input" autocomplete="off" class="form-control" />
+                <div id="send"><button class="btn btn-dark"><i class="bi bi-chevron-right"></i></button></div>
+            </form>
+        </div>
+        
+        <div id="vUsuario">
+            <form id="formUsuario" action="">
+                <input id="inputUsuario" autocomplete="off" /><button id="sendUsuario">Send</button>
+            </form>
+        </div>
+    </div>
   </body>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
         var form = document.getElementById('form');
+        var formU = document.getElementById('formUsuario');
+        var usuarios = document.getElementById('usuariosChat')
+
         var input = document.getElementById('input');
+        var inputU = document.getElementById('inputUsuario');
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -35,12 +112,42 @@
                 input.value = '';
             }
         });
-        socket.on('chat message', function(msg) {
+        
+        formU.addEventListener('submit',function(e){
+            e.preventDefault();
+            if(inputU.value){
+                socket.emit('user',inputU.value);
+                document.getElementById("userName").innerHTML=inputU.value
+                document.getElementById("ventana").style.display = ""
+                document.getElementById("vUsuario").style.display = "none"
+            }
+        })
+
+        // Recibir los usuarios
+        socket.on('users Chat', function(msg){
+            usuarios.innerHTML = msg
+        })
+
+        // Recibir mensaje nuevo
+        socket.on('chat message', function(msgJSON) {
+            //console.log(msgJSON)
+            var msg = JSON.parse(msgJSON)
             var item = document.createElement('li');
-            item.textContent = msg;
+            item.textContent = msg.author + ": " + msg.text;
             messages.appendChild(item);
             window.scrollTo(0, document.body.scrollHeight);
         });
+
+        // Recibir todos los mensajes
+        socket.on('history', function(msg){
+            var historial = JSON.parse(msg)
+            for(var i=0;i<historial.length;i++){
+                var item = document.createElement('li');
+                item.textContent = historial[i].author + ": " + historial[i].text;
+                messages.appendChild(item);
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        })
     </script>
 
 </html>
