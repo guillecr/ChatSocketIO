@@ -2,6 +2,7 @@
 const app = require('express')();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http); // Montamos el Socket con el servidor HTML al cual está asociado Express
+const port = process.env.PORT || 3000;
 
 // Creamos un metodo en Express que nos devolverá la pagina indicada
 // Esta tiene que ser la ruta absoluta, por lo que añadimos la 
@@ -26,6 +27,6 @@ io.on('connection', (socket) => {
 });
 
   
-http.listen(3000, () => {
-console.log('listening on *:3000');
+http.listen(port, () => {
+console.log(`listening on *: ${port}`);
 });
