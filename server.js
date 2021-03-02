@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect',()=>{
         console.log('Usuario desconectado')
         console.log(index)
-        usuarios.slice(index,1)
+        usuarios.splice(index,1)
         io.emit('users Chat',usuarios.join(" | "))
     })
 })
