@@ -1,0 +1,16 @@
+{
+  "name": "socketio",
+  "version": "1.0.0",
+  "description": "Chat con Sockey IO",
+  "main": "index.js",
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "author": "Guillermo Casas",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^3.1.2"
+  }
+}
