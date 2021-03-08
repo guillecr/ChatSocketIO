@@ -6,6 +6,10 @@ const port = process.env.PORT || 3000
 
 var mensajes = []
 var usuarios = []
+var colores = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange']
+
+// Desordenamos la lista de colores 
+colores.sort(function(a,b) { return Math.random() > 0.5; })
 
 // Levantamos el escuchador por el puerto definido
 http.listen(port, () => {
@@ -25,6 +29,7 @@ io.on('connection', (socket) => {
     console.log((new Date()) + ' Conexión aceptada.')
     var userName = "Desconocido"
     var index = -1
+    var userColor
     
     // Cargamos todos los mensajes
     socket.emit('history',JSON.stringify(mensajes))
@@ -33,7 +38,9 @@ io.on('connection', (socket) => {
     socket.on('user',(msg) => {
         console.log(`Usuario llamado ${msg}`)
         userName = msg
+        userColor = colores.shift()
         index = usuarios.push(msg) -1
+        socket.emit('color',userColor)
         io.emit('users Chat',usuarios.join(" | "))
     })
 
@@ -43,6 +50,7 @@ io.on('connection', (socket) => {
             time: (new Date()).getTime(),
             text: msg,
             author: userName,
+            color: userColor
         }
         console.log('message: ' + msg)
         io.emit('chat message', JSON.stringify(objMsg))
@@ -55,6 +63,7 @@ io.on('connection', (socket) => {
         console.log('Usuario desconectado')
         console.log(index)
         usuarios.splice(index,1)
+        colores.push(userColor)
         io.emit('users Chat',usuarios.join(" | "))
     })
 })

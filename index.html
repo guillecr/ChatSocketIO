@@ -3,6 +3,18 @@
   <head>
     <title>Socket.IO chat</title>
     <style>
+        :root {
+            --hue: 205;
+            --saturation: 100%;
+            --lightness: 50%;
+
+            --primary-color: hsl(var(--hue), var(--saturation), var(--lightness));
+            --secondary-color: hsl(calc(var(--hue) + 180), var(--saturation), var( --lightness));
+
+            --fondo: hsla(var(--hue), calc(var(--saturation) * 0), var(--lightness));
+        }
+
+
         body {font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         #contenedor{
             width: 80vw;
@@ -37,6 +49,8 @@
             width: 100%;
             border-bottom: 1px black solid ;
             background-color: rgb(221, 221, 221);
+            overflow-y: scroll;
+            padding-left: 5px;
         }
 
         /* Barra Inferior */
@@ -77,16 +91,13 @@
                 <div id="usuariosChat"></div>
                 <i style="width: 40px;" class="bi bi-lightbulb-fill"></i>
             </div>
-            <div id="conteMensajes">
-                <ul id="messages"></ul>
-            </div>
+            <div id="conteMensajes"></div>
             <form id="form" action="">
                 <label id="userName"><p></p></label>
                 <input id="input" autocomplete="off" class="form-control" />
                 <div id="send"><button class="btn btn-dark"><i class="bi bi-chevron-right"></i></button></div>
             </form>
         </div>
-        
         <div id="vUsuario">
             <form id="formUsuario" action="">
                 <input id="inputUsuario" autocomplete="off" /><button id="sendUsuario">Send</button>
@@ -101,6 +112,7 @@
         var form = document.getElementById('form');
         var formU = document.getElementById('formUsuario');
         var usuarios = document.getElementById('usuariosChat')
+        var mensajesD = document.getElementById('conteMensajes')
 
         var input = document.getElementById('input');
         var inputU = document.getElementById('inputUsuario');
@@ -123,6 +135,10 @@
             }
         })
 
+        socket.on('color',function(msg){
+            document.getElementById("userName").style.color = msg
+        })
+
         // Recibir los usuarios
         socket.on('users Chat', function(msg){
             usuarios.innerHTML = msg
@@ -130,24 +146,33 @@
 
         // Recibir mensaje nuevo
         socket.on('chat message', function(msgJSON) {
-            //console.log(msgJSON)
             var msg = JSON.parse(msgJSON)
-            var item = document.createElement('li');
-            item.textContent = msg.author + ": " + msg.text;
-            messages.appendChild(item);
-            window.scrollTo(0, document.body.scrollHeight);
+            addMessage(msg.author,msg.text,msg.color,msg.time)
         });
 
         // Recibir todos los mensajes
         socket.on('history', function(msg){
             var historial = JSON.parse(msg)
             for(var i=0;i<historial.length;i++){
-                var item = document.createElement('li');
-                item.textContent = historial[i].author + ": " + historial[i].text;
-                messages.appendChild(item);
-                window.scrollTo(0, document.body.scrollHeight);
+                addMessage(historial[i].author,historial[i].text,historial[i].color,historial[i].time)
             }
         })
-    </script>
 
+        function addMessage(author, message, color, time) {
+            dt = new Date(time)
+
+            salida = document.createElement('p')
+            contenido = document.createElement('span')
+            
+            contenido.innerHTML = '@' + author
+            contenido.style.color=color
+
+            salida.appendChild(contenido)
+            salida.innerHTML += " " + (dt.getHours() < 10 ? '0' + dt.getHours() : dt.getHours()) + ':'
+              + (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes())
+              + "  " + message + '</p>'
+            mensajesD.appendChild(salida)
+            mensajesD.scrollTo(0, mensajesD.scrollHeight);
+        }
+    </script>
 </html>
