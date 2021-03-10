@@ -10,14 +10,14 @@ var mongoose = require('mongoose')
 
 // Variables globales
 const port = process.env.PORT || 3000
-var usuarios = []
+var usuarios = new Map()
 var colores = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange']
 
 
 // ===========< MONGODB >==========
 // Conexión
-mongoose.connect('mongodb+srv://guilleStart:Sandrita28@cluster0.jxlyr.gcp.mongodb.net/chatIO?retryWrites=true&w=majority',
-//mongoose.connect('mongodb://localhost:27017',
+//mongoose.connect('mongodb+srv://guilleStart:Sandrita28@cluster0.jxlyr.gcp.mongodb.net/chatIO?retryWrites=true&w=majority',
+mongoose.connect('mongodb://localhost:27017',
     {useNewUrlParser: true, useUnifiedTopology: true},
     function (err) {
         if (err) throw err;      
@@ -77,11 +77,23 @@ io.on('connection', (socket) => {
     socket.on('user',(msg) => {
         userName = msg
         userColor = colores.shift()
-        if(index < 0 ) index = usuarios.push(msg) -1
-        else usuarios[index] = userName
+
+        if(index<0){
+            if(usuarios.size == 0){
+                index = 0
+            }else{
+                var claves = Array.from(usuarios.keys())
+                console.log(claves)
+                index = claves[claves.length -1]+1
+            }
+        }
+        
+
+        usuarios.set(index,userName)
+        console.log(usuarios)
         console.log(`${new Date()} => Usuario ${index} identificado como: ${msg}`)
         socket.emit('color',userColor)
-        io.emit('users Chat',usuarios.join(" | "))
+        io.emit('users Chat',Array.from(usuarios.values()).join(" | "))
     })
 
     // Nuevo mensaje
@@ -100,8 +112,8 @@ io.on('connection', (socket) => {
     // Dexconexión del usuario
     socket.on('disconnect',()=>{
         console.log(`${new Date()} => Usuario ${userName} desconectado`)
-        usuarios.splice(index,1)
+        usuarios.delete(index)
         colores.push(userColor)
-        io.emit('users Chat',usuarios.join(" | "))
+        io.emit('users Chat',Array.from(usuarios.values()).join(" | "))
     })
 })
