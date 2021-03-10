@@ -1,50 +1,69 @@
-// SERVIDOR
+/**
+ * Codigo Chat con Socket.IO
+ */
+
+// Dependencias
 const app = require('express')()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http) // Montamos el Socket con el servidor HTML al cual está asociado Express
-const port = process.env.PORT || 3000
+var mongoose = require('mongoose')
 
+// Variables globales
+const port = process.env.PORT || 3000
 var usuarios = []
 var colores = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange']
 
 
-// MONGOBD
-var mongoose = require('mongoose')
+// ===========< MONGODB >==========
+// Conexión
 //mongoose.connect('mongodb+srv://guilleStart:Sandrita28@cluster0.jxlyr.gcp.mongodb.net/chatIO?retryWrites=true&w=majority',
 mongoose.connect('mongodb://localhost:27017',
     {useNewUrlParser: true, useUnifiedTopology: true},
     function (err) {
         if (err) throw err;      
-        console.log('Conexión establecida con MongoDB');
+        console.log(`${new Date()} => Conexión establecida con MongoDB`);
     }
 )
-
+// Esquema de datos
 var modelo = new mongoose.Schema({
     time: Date,
     text: String,
     author: String,
     color: String,
 });
+// Modelo
 var MensajeModelo = mongoose.model('Mensajes', modelo );
+// Función para guardar mensaje
+function saveMensaje(msg){
+    var instancia = new MensajeModelo(
+        {
+            time:msg.time,
+            text:msg.text,
+            author:msg.author,
+            color:msg.color
+        }
+    )
+    instancia.save()
+}
 
 // Desordenamos la lista de colores 
 colores.sort(function(a,b) { return Math.random() > 0.5; })
 
-// Levantamos el escuchador por el puerto definido
+// SERVIDOR
+// Listen
 http.listen(port, () => {
-    console.log(`Servidor levantado en el puerto: ${port}`)
+    console.log(`${new Date()} => Servidor levantado en el puerto: ${port}`)
 })
 
-// Creamos un metodo en Express que nos devolverá la pagina indicada
-// Esta tiene que ser la ruta absoluta, por lo que añadimos la 
-// variable __dirname a lo que concatenamos el nombre del fichero
+// Controlador GET para entregar el cliente
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html')
 });
 
-// CONEXIÓN CON USUARIO
+
+// SOCKET.IO
 io.on('connection', (socket) => {
-    console.log((new Date()) + ' Conexión aceptada')
+    console.log((new Date()) + ' => Conexión aceptada')
     var userName = "Desconocido"
     var index = -1
     var userColor
@@ -56,11 +75,11 @@ io.on('connection', (socket) => {
 
     // Definir nombre de usuario
     socket.on('user',(msg) => {
-        console.log(`Usuario identificado como: ${msg}`)
         userName = msg
         userColor = colores.shift()
         if(index < 0 ) index = usuarios.push(msg) -1
         else usuarios[index] = userName
+        console.log(`${new Date()} => Usuario ${index} identificado como: ${msg}`)
         socket.emit('color',userColor)
         io.emit('users Chat',usuarios.join(" | "))
     })
@@ -73,29 +92,16 @@ io.on('connection', (socket) => {
             author: userName,
             color: userColor
         }
-        console.log(`Mensaje de ${userName}: ${msg}`)
+        console.log(`${new Date()} => Mensaje de ${userName}: ${msg}`)
         saveMensaje(objMsg)
         io.emit('chat message', JSON.stringify(objMsg))
     })
 
     // Dexconexión del usuario
     socket.on('disconnect',()=>{
-        console.log(`Usuario ${userName} desconectado`)
+        console.log(`${new Date()} => Usuario ${userName} desconectado`)
         usuarios.splice(index,1)
         colores.push(userColor)
         io.emit('users Chat',usuarios.join(" | "))
     })
 })
-
-function saveMensaje(msg){
-    var instancia = new MensajeModelo(
-        {
-            time:msg.time,
-            text:msg.text,
-            author:msg.author,
-            color:msg.color
-        }
-    )
-    instancia.save()
-    console.log("Mensaje guardado")
-}

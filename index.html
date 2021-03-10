@@ -7,9 +7,6 @@
             background-color: rgb(63, 63, 63);
             color:white;
         }
-        .oscuroBoton{
-            background-color: rgb(207, 17, 17);
-        }
 
         ::-webkit-scrollbar {
             display: none;
@@ -27,6 +24,7 @@
             height: 600px;
             border: 1px black solid;
         }
+
         /* Barra superior */
         #barra{
             width: 100%;
@@ -88,19 +86,21 @@
         }
         
     </style>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
   </head>
   <body>
     <div class="container" id="contenedor">
+
         <div id="ventana" style="display: none">
             <div id="barra">
                 <i style="float: left;width: 20px;"  class="bi bi-person-fill"></i>
                 <div id="usuariosChat"></div>
                 <i style="width: 40px;" class="bi bi-clipboard" id="copiar" onclick="copiar()"></i>
                 <i style="width: 40px;" class="bi bi-clipboard-check" id="copiarOK"></i>
+                <span style="margin-left: 5px;"></span>
                 <i style="width: 40px;" class="bi bi-toggle-off" id="cOff" onclick="colorCambio(1)"></i>
-                <i style="width: 40px;" class="bi bi-toggle-on" id="cOn" onclick="colorCambio(0)"></i>
+                <i style="width: 40px;" class="bi bi-toggle-on"  id="cOn"  onclick="colorCambio(0)"></i>
             </div>
             <div id="conteMensajes"></div>
             <div id="formD">
@@ -109,10 +109,9 @@
                         <span class="btn btn-outline-primary" id="textName" onclick="setNombre(true)"></span>
                     </label>
                     <input id="input" autocomplete="off" class="form-control" required/>
-                    <div id="send"><button class="btn btn-info"><i class="bi bi-chevron-right"></i></button></div>
+                    <div id="send"><button class="btn btn-success"><i class="bi bi-chevron-right"></i></button></div>
                 </form>
-            </div>
-            
+            </div> 
         </div>
 
         <div id="vUsuario" class="container">
@@ -127,6 +126,7 @@
                 </form>
             </div>
         </div>
+
     </div>
   </body>
 
@@ -144,6 +144,7 @@
         document.getElementById("cOff").style.display="none"
         document.getElementById("copiarOK").style.display="none"
 
+        // Evento del formulario de enviar mensaje
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             if (input.value) {
@@ -152,15 +153,18 @@
             }
         });
         
+        // Evento de formulario de enviar el nombre del usuario
         formU.addEventListener('submit',function(e){
             e.preventDefault();
             if(inputU.value){
                 socket.emit('user',inputU.value);
                 document.getElementById("textName").innerHTML=inputU.value
+                document.cookie = `usuario=${inputU.value}; max-age=3600; path=/; secure`;
                 setNombre(false)
             }
         })
 
+        // Función encargada de mostrar u ocultar el formulario del nombre
         function setNombre(type){
             if(type){
                 document.getElementById("ventana").style.display = "none"
@@ -172,6 +176,7 @@
             
         }
 
+        // Modificar color
         socket.on('color',function(msg){
             document.getElementById("textName").style.color = msg
         })
@@ -195,6 +200,7 @@
             }
         })
 
+        // Función para añadir un mensaje al contenedor de mensajes
         function addMessage(author, message, color, time) {
             dt = new Date(time)
             salida = document.createElement('p')
@@ -211,19 +217,22 @@
             mensajesD.scrollTo(0, mensajesD.scrollHeight);
         }
 
+        // Función para cambiar el tema del chat
         function colorCambio(type){
             mensajesD.classList.toggle("oscuro")
             document.getElementById("formD").classList.toggle("oscuro")
-            document.getElementById("textName").classList.toggle("oscuroBoton")
             if(type == 1){
                 document.getElementById("cOff").style.display="none"
                 document.getElementById("cOn").style.display=""
+                document.getElementById("input").style.backgroundColor = ""
             }else{
                 document.getElementById("cOff").style.display=""
                 document.getElementById("cOn").style.display="none"
+                document.getElementById("input").style.backgroundColor = "rgb(200, 200, 200)"
             }
         }
 
+        // Función para copiar el chat
         function copiar(){
             var seleccion = document.createRange()
             seleccion.selectNode(mensajesD)
@@ -238,8 +247,6 @@
                 document.getElementById("copiar").style.display=""
                 document.getElementById("copiarOK").style.display="none"
             },1000)
-
-            console.log("Copiar")
         }
         
     </script>
