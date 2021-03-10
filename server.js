@@ -1,25 +1,30 @@
 /**
- * Codigo Chat con Socket.IO
+ * Sala de chat mediante Socket.IO
+ * 
+ * @author Guillermo Casas Reche
  */
 
-// Dependencias
+// ===========< DEPENDENCIAS >==========
 const app = require('express')()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http) // Montamos el Socket con el servidor HTML al cual está asociado Express
 var mongoose = require('mongoose')
 
-// Variables globales
+
+// ===========< VARIABLES GLOBALES >==========
 const port = process.env.PORT || 3000
 var usuarios = new Map()
 var colores = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange']
+colores.sort(function(a,b) { return Math.random() > 0.5; })
+var countUsersAll = 0
 
 
 // ===========< MONGODB >==========
 // Conexión
-//mongoose.connect('mongodb+srv://guilleStart:Sandrita28@cluster0.jxlyr.gcp.mongodb.net/chatIO?retryWrites=true&w=majority',
-mongoose.connect('mongodb://localhost:27017',
+mongoose.connect('mongodb+srv://usoClase:f1RyPXpeqjEnIY7h@cluster0.jxlyr.gcp.mongodb.net/chatIO?retryWrites=true&w=majority',
+//mongoose.connect('mongodb://localhost:27017',
     {useNewUrlParser: true, useUnifiedTopology: true},
-    function (err) {
+    err => {
         if (err) throw err;      
         console.log(`${new Date()} => Conexión establecida con MongoDB`);
     }
@@ -46,10 +51,8 @@ function saveMensaje(msg){
     instancia.save()
 }
 
-// Desordenamos la lista de colores 
-colores.sort(function(a,b) { return Math.random() > 0.5; })
 
-// SERVIDOR
+// ===========< SERVIDOR >==========
 // Listen
 http.listen(port, () => {
     console.log(`${new Date()} => Servidor levantado en el puerto: ${port}`)
@@ -61,9 +64,9 @@ app.get('/', (req, res) => {
 });
 
 
-// SOCKET.IO
+// ===========< SOCKET.IO >==========
 io.on('connection', (socket) => {
-    console.log((new Date()) + ' => Conexión aceptada')
+    console.log((new Date()) + ' => Nueva conexión aceptada')
     var userName = "Desconocido"
     var index = -1
     var userColor
@@ -76,24 +79,17 @@ io.on('connection', (socket) => {
     // Definir nombre de usuario
     socket.on('user',(msg) => {
         userName = msg
+        if(userColor != null) colores.push(userColor)
         userColor = colores.shift()
 
         if(index<0){
-            if(usuarios.size == 0){
-                index = 0
-            }else{
-                var claves = Array.from(usuarios.keys())
-                console.log(claves)
-                index = claves[claves.length -1]+1
-            }
+            index = countUsersAll++
         }
-        
 
         usuarios.set(index,userName)
-        console.log(usuarios)
         console.log(`${new Date()} => Usuario ${index} identificado como: ${msg}`)
         socket.emit('color',userColor)
-        io.emit('users Chat',Array.from(usuarios.values()).join(" | "))
+        io.emit('users chat',Array.from(usuarios.values()).join(" | "))
     })
 
     // Nuevo mensaje
@@ -113,7 +109,8 @@ io.on('connection', (socket) => {
     socket.on('disconnect',()=>{
         console.log(`${new Date()} => Usuario ${userName} desconectado`)
         usuarios.delete(index)
+        console.log(Array.from(usuarios.values()).join(" | "))
         colores.push(userColor)
-        io.emit('users Chat',Array.from(usuarios.values()).join(" | "))
+        io.emit('users chat',Array.from(usuarios.values()).join(" | "))
     })
 })
