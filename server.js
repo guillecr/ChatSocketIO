@@ -16,8 +16,8 @@ var colores = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange']
 
 // ===========< MONGODB >==========
 // Conexión
-//mongoose.connect('mongodb+srv://guilleStart:Sandrita28@cluster0.jxlyr.gcp.mongodb.net/chatIO?retryWrites=true&w=majority',
-mongoose.connect('mongodb://localhost:27017',
+mongoose.connect('mongodb+srv://guilleStart:Sandrita28@cluster0.jxlyr.gcp.mongodb.net/chatIO?retryWrites=true&w=majority',
+//mongoose.connect('mongodb://localhost:27017',
     {useNewUrlParser: true, useUnifiedTopology: true},
     function (err) {
         if (err) throw err;      
