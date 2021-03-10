@@ -186,9 +186,9 @@
         // Recibir todos los mensajes
         socket.on('history', function(msg){
             var historial = JSON.parse(msg)
-            for(var i=0;i<historial.length;i++){
-                addMessage(historial[i].author,historial[i].text,historial[i].color,historial[i].time)
-            }
+            historial.forEach(d =>{
+                addMessage(d.author,d.text,d.color,d.time)
+            })
         })
 
         // Función para añadir un mensaje al contenedor de mensajes

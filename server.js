@@ -21,8 +21,8 @@ var countUsersAll = 0
 
 // ===========< MONGODB >==========
 // Conexión
-mongoose.connect('mongodb+srv://usoClase:f1RyPXpeqjEnIY7h@cluster0.jxlyr.gcp.mongodb.net/chatIO?retryWrites=true&w=majority',
-//mongoose.connect('mongodb://localhost:27017',
+mongoose.connect(
+    'mongodb+srv://usoClase:f1RyPXpeqjEnIY7h@cluster0.jxlyr.gcp.mongodb.net/chatIO?retryWrites=true&w=majority',
     {useNewUrlParser: true, useUnifiedTopology: true},
     err => {
         if (err) throw err;      
@@ -109,7 +109,6 @@ io.on('connection', (socket) => {
     socket.on('disconnect',()=>{
         console.log(`${new Date()} => Usuario ${userName} desconectado`)
         usuarios.delete(index)
-        console.log(Array.from(usuarios.values()).join(" | "))
         colores.push(userColor)
         io.emit('users chat',Array.from(usuarios.values()).join(" | "))
     })
